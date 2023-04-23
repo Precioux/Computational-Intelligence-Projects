@@ -56,10 +56,13 @@ class Conv2D:
         returns:
             target_shape: shape of the output of the convolutional layer
         """
-        # TODO: Implement calculation of target shape
-        H = None
-        W = None
-        return (H, W)
+        # Assuming 'same' padding and stride of 1
+        H = input_shape[0]
+        W = input_shape[1]
+        num_filters = self.num_filters
+        kernel_size = self.kernel_size
+        target_shape = (H, W, num_filters)
+        return target_shape
 
     def pad(self, A, padding, pad_value=0):
         """
