@@ -30,8 +30,8 @@ class FC:
             raise ValueError("Invalid initialization method")
 
     def initialize_bias(self):
-        # TODO: Initialize bias with zeros
-        return np.zeros((None, 1))
+        # Initialize bias with zeros
+        return np.zeros((self.output_size, 1))
 
     def forward(self, A_prev):
         """
@@ -46,15 +46,18 @@ class FC:
         self.input_shape = A_prev.shape
         A_prev_tmp = np.copy(A_prev)
 
-        # TODO: Implement forward pass for fully connected layer
-        if None:  # check if A_prev is output of convolutional layer
-            batch_size = None
-            A_prev_tmp = A_prev_tmp.reshape(None, -1).T
+        # Check if A_prev is output of convolutional layer
+        if len(A_prev_tmp.shape) > 2:
+            batch_size = A_prev_tmp.shape[0]
+            A_prev_tmp = A_prev_tmp.reshape(batch_size, -1).T
+        else:
+            batch_size = A_prev_tmp.shape[0]
+
         self.reshaped_shape = A_prev_tmp.shape
 
-        # TODO: Forward part
-        W, b = None
-        Z = None @ None + None
+        # Forward part
+        W, b = self.weights, self.biases
+        Z = np.dot(W, A_prev_tmp) + b
         return Z
 
     def backward(self, dZ, A_prev):
@@ -68,19 +71,25 @@ class FC:
                 grads: list of gradients for the weights and bias
         """
         A_prev_tmp = np.copy(A_prev)
-        if None:  # check if A_prev is output of convolutional layer
-            batch_size = None
-            A_prev_tmp = A_prev_tmp.reshape(None, -1).T
 
-        # TODO: backward part
-        W, b = None
-        dW = None @ None.T / None
-        db = np.sum(None, axis=1, keepdims=True) / None
-        dA_prev = None.T @ None
+        # Check if A_prev is output of convolutional layer
+        if len(A_prev_tmp.shape) > 2:
+            batch_size = A_prev_tmp.shape[0]
+            A_prev_tmp = A_prev_tmp.reshape(batch_size, -1).T
+        else:
+            batch_size = A_prev_tmp.shape[0]
+
+        # Backward part
+        W, b = self.weights, self.biases
+        dW = np.dot(dZ, A_prev_tmp.T) / batch_size
+        db = np.sum(dZ, axis=1, keepdims=True) / batch_size
+        dA_prev = np.dot(W.T, dZ)
         grads = [dW, db]
-        # reshape dA_prev to the shape of A_prev
-        if None:    # check if A_prev is output of convolutional layer
+
+        # Reshape dA_prev to the shape of A_prev
+        if len(A_prev.shape) > 2:
             dA_prev = dA_prev.T.reshape(self.input_shape)
+
         return dA_prev, grads
 
     def update_parameters(self, optimizer, grads):
