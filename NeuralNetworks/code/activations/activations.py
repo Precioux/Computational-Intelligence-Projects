@@ -109,9 +109,9 @@ class Tanh(Activation):
 
 
 class LinearActivation(Activation):
-    def linear(Z: np.ndarray) -> np.ndarray:
+    def forward(self, Z: np.ndarray) -> np.ndarray:
         """
-        Linear activation function.
+        Linear activation function AKA forward
             args:
                 x: input to the activation function
             returns:
@@ -120,7 +120,7 @@ class LinearActivation(Activation):
         A = Z
         return A
 
-    def backward(dA: np.ndarray, Z: np.ndarray) -> np.ndarray:
+    def backward(self, dA: np.ndarray, Z: np.ndarray) -> np.ndarray:
         """
         Backward pass for linear activation function.
             args:
