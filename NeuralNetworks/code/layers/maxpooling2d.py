@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class MaxPool2D:
     def __init__(self, kernel_size=(3, 3), stride=(1, 1), mode="max"):
         """
@@ -9,6 +10,13 @@ class MaxPool2D:
                 stride: stride of the kernel
                 mode: max or average
             Question:Why we don't need to set name for the layer?
+            Ans:
+            The name parameter is not included in the constructor because it is
+            not a necessary property for the functioning of the max pooling layer.
+            The name parameter is commonly used when building complex neural network
+            architectures or when you need to uniquely identify a specific layer
+            within a network. However, for a basic implementation of a max pooling layer,
+            it is not essential to assign a name to it.
         """
         self.stride = (stride, stride) if isinstance(stride, int) else stride
         self.kernel_size = (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
@@ -96,8 +104,6 @@ class MaxPool2D:
         a = np.ones(shape) * average
         return a
 
-
-
     def backward(self, dZ, A_prev):
         """
         Backward pass for max pooling layer.
@@ -132,7 +138,3 @@ class MaxPool2D:
                             raise ValueError("Invalid mode")
         # Don't change the return
         return dA_prev, None
-
-
-    
-    
