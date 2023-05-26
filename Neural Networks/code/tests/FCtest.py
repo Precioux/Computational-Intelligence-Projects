@@ -1,7 +1,5 @@
 import numpy as np
-from layers.fullyconnected import FC
-from activations import Activation, get_activation
-
+from ..layers.fullyconnected import FC
 
 def main():
     # Create an instance of the FC class with ReLU activation

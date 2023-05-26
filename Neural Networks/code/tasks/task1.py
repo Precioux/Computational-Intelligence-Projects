@@ -1,14 +1,14 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from layers.convolution2d import Conv2D
-from layers.maxpooling2d import MaxPool2D
-from layers.fullyconnected import FC
-from activations import Activation, get_activation
-from losses.binarycrossentropy import BinaryCrossEntropy
-from losses.meansquarederror import MeanSquaredError
-from model import Model
-from optimizers.adam import Adam
-from optimizers.gradientdescent import GD
+from ..layers.convolution2d import Conv2D
+from ..layers.maxpooling2d import MaxPool2D
+from ..layers.fullyconnected import FC
+from ..activations.activations import Activation, get_activation
+from ..losses.binarycrossentropy import BinaryCrossEntropy
+from ..losses.meansquarederror import MeanSquaredError
+from ..models.model import Model
+from ..optimizers.adam import Adam
+from ..optimizers.gradientdescent import GD
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
