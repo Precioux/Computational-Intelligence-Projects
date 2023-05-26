@@ -1,11 +1,9 @@
 from layers.convolution2d import Conv2D
 from layers.maxpooling2d import MaxPool2D
 from layers.fullyconnected import FC
-
 from activations import Activation, get_activation
-
 import pickle
-import tqdm
+from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 from random import shuffle

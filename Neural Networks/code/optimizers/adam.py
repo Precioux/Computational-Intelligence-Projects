@@ -1,17 +1,17 @@
 import numpy as np
 
 class Adam:
-    def __init__(self, layers_list, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
-        self.layers = layers_list
+    def __init__(self, layers_dict, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
+        self.layers = {name: layer for name, layer in layers_dict.items() if hasattr(layer, 'parameters')}
         self.learning_rate = learning_rate
         self.beta1 = beta1
         self.beta2 = beta2
         self.epsilon = epsilon
         self.V = {}
         self.S = {}
-        for name in layers_list:
-            v = [np.zeros_like(p) for p in layers_list[name].parameters]
-            s = [np.zeros_like(p) for p in layers_list[name].parameters]
+        for name, layer in self.layers.items():
+            v = [np.zeros_like(p) for p in layer.parameters]
+            s = [np.zeros_like(p) for p in layer.parameters]
             self.V[name] = v
             self.S[name] = s
 

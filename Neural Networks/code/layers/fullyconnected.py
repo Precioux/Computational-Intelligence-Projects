@@ -22,7 +22,7 @@ class FC:
             return np.random.randn(self.output_size, self.input_size) * xavier_stddev
 
         elif self.initialize_method == "he":
-            # Initialize weights using He initialization
+            # Initialize weights using he initialization
             he_stddev = np.sqrt(2 / self.input_size)
             return np.random.randn(self.output_size, self.input_size) * he_stddev
 
@@ -34,21 +34,16 @@ class FC:
         return np.zeros((self.output_size, 1))
 
     def forward(self, A_prev):
-        """
-        Forward pass for fully connected layer.
-            args:
-                A_prev: activations from previous layer (or input data)
-                A_prev.shape = (batch_size, input_size)
-            returns:
-                Z: output of the fully connected layer
-        """
-        # NOTICE: BATCH_SIZE is the first dimension of A_prev
+        print('Forward Step:')
         self.input_shape = A_prev.shape
         A_prev_tmp = np.copy(A_prev)
+        print(f'input shape: {self.input_shape}')
 
-        # Check if A_prev is output of convolutional layer
         if len(A_prev_tmp.shape) > 2:
+            print('yes to conv')
             batch_size = A_prev_tmp.shape[0]
+            print(f'batch size: {batch_size}')
+            print(f'tmp = {A_prev_tmp.reshape(batch_size, -1).T}')
             A_prev_tmp = A_prev_tmp.reshape(batch_size, -1).T
         else:
             batch_size = A_prev_tmp.shape[0]
@@ -56,23 +51,31 @@ class FC:
         self.reshaped_shape = A_prev_tmp.shape
 
         # Forward part
-        W, b = self.weights, self.biases
-        Z = np.dot(W, A_prev_tmp) + b
+        W, b = self.parameters
+        # Add each item of the dot product to the bias
+        bias_expanded = np.tile(b.T, (batch_size, 1))
+        Z = np.dot(A_prev_tmp, W.T)
+        Z_with_bias = Z + bias_expanded
+
+        print('Weights:')
+        print(W.T)
+        print('Bias:')
+        print(bias_expanded)
+        print('A.Wt:')
+        print(Z)
+        print('Final output:')
+        print(Z_with_bias)
+
         return Z
 
     def backward(self, dZ, A_prev):
-        """
-        Backward pass for fully connected layer.
-            args:
-                dZ: derivative of the cost with respect to the output of the current layer
-                A_prev: activations from previous layer (or input data)
-            returns:
-                dA_prev: derivative of the cost with respect to the activation of the previous layer
-                grads: list of gradients for the weights and bias
-        """
+        print('Backward Step:')
+        print('dZ:')
+        print(dZ)
+        print('Input:')
+        print(A_prev)
         A_prev_tmp = np.copy(A_prev)
 
-        # Check if A_prev is output of convolutional layer
         if len(A_prev_tmp.shape) > 2:
             batch_size = A_prev_tmp.shape[0]
             A_prev_tmp = A_prev_tmp.reshape(batch_size, -1).T
@@ -80,13 +83,20 @@ class FC:
             batch_size = A_prev_tmp.shape[0]
 
         # Backward part
-        W, b = self.weights, self.biases
-        dW = np.dot(dZ, A_prev_tmp.T) / batch_size
+        W, b = self.parameters
+        dW = np.dot(dZ.T, A_prev_tmp) / batch_size
+        print('dW:')
+        print(dW)
         db = np.sum(dZ, axis=1, keepdims=True) / batch_size
-        dA_prev = np.dot(W.T, dZ)
+        print('db:')
+        print(db)
+        print(W)
+        print(dZ.T)
+        dA_prev = np.dot(dZ, W)
+        print('dA:')
+        print(dA_prev)
         grads = [dW, db]
 
-        # Reshape dA_prev to the shape of A_prev
         if len(A_prev.shape) > 2:
             dA_prev = dA_prev.T.reshape(self.input_shape)
 
@@ -100,3 +110,6 @@ class FC:
                 grads: list of gradients for the weights and bias
         """
         self.parameters = optimizer.update(grads, self.name)
+
+
+
