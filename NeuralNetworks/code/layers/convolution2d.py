@@ -13,10 +13,17 @@ class Conv2D:
         self.stride = (stride, stride) if isinstance(stride, int) else stride
         self.padding = (padding, padding) if isinstance(padding, int) else padding
         self.parameters = [self.initialize_weights(), self.initialize_bias()]
+        print('Weights:')
+        print(self.parameters[0].shape)
+        print(self.parameters[0])
+        print('Bias:')
+        print(self.parameters[1].shape)
+        print(self.parameters[1])
 
     def initialize_weights(self):
         # Initialize weights
-        kernel_shape = (self.kernel_size[0], self.kernel_size[1], self.in_channels, self.out_channels)
+        kernel_shape = (self.kernel_size[0] // self.stride[0], self.kernel_size[1] // self.stride[1], self.in_channels,
+                        self.out_channels)
         if self.initialize_method == "random":
             return np.random.randn(*kernel_shape) * 0.01
         elif self.initialize_method == "xavier":
@@ -58,62 +65,105 @@ class Conv2D:
         return Z
 
     def forward(self, A_prev):
+        # Get the parameters of the CNN.
         W, b = self.parameters
+
+        # Get the shape of the input.
         (batch_size, H_prev, W_prev, C_prev) = A_prev.shape
-        (kernel_size_h, kernel_size_w, C_prev, C) = W.shape
+
+        # Get the shape of the kernel.
+        (kernel_size_h, kernel_size_w, _, C) = W.shape
+
+        # Get the stride and padding.
         stride_h, stride_w = self.stride
         padding_h, padding_w = self.padding
-        H = int((H_prev + 2 * padding_h - kernel_size_h) / stride_h) + 1
-        W = int((W_prev + 2 * padding_w - kernel_size_w) / stride_w) + 1
-        Z = np.zeros((batch_size, H, W, C))
+
+        # Calculate the output shape.
+        Height = int((H_prev + 2 * padding_h - kernel_size_h) / stride_h) + 1
+        Width = int((W_prev + 2 * padding_w - kernel_size_w) / stride_w) + 1
+
+        # Initialize the output matrix.
+        Z = np.zeros((batch_size, Height, Width, C))
+
+        # Pad the input.
         A_prev_pad = self.pad(A_prev, self.padding)
+
+        # Iterate over the batch size, the height, the width, and the number of channels.
         for i in range(batch_size):
-            for h in range(H):
+            for h in range(Height):
                 h_start = h * stride_h
                 h_end = h_start + kernel_size_h
-                for w in range(W):
+                for w in range(Width):
                     w_start = w * stride_w
                     w_end = w_start + kernel_size_w
                     for c in range(C):
+                        # Get the current patch of the input.
                         a_slice_prev = A_prev_pad[i, h_start:h_end, w_start:w_end, :]
-                        Z[i, h, w, c] = self.single_step_convolve(a_slice_prev, W[..., c], b[..., c])
+
+                        # Get the weight matrix for the current channel.
+                        W_current_channel = W[:, :, :, c]
+
+                        # Get the bias for the current channel.
+                        b_current_channel = b[0, 0, 0, c]
+
+                        # Calculate the convolution of the current patch of the input with the current kernel.
+                        Z[i, h, w, c] = self.single_step_convolve(a_slice_prev, W_current_channel, b_current_channel)
+
+        # Return the output matrix.
         return Z
 
     def backward(self, dZ, A_prev):
+        """
+        Backward pass for convolutional layer.
+        args:
+            dZ: gradient of the cost with respect to the output of the convolutional layer
+            A_prev: activations from previous layer (or input data)
+            A_prev.shape = (batch_size, H_prev, W_prev, C_prev)
+        returns:
+            dA_prev: gradient of the cost with respect to the input of the convolutional layer
+            gradients: list of gradients with respect to the weights and bias
+        """
         W, b = self.parameters
         (batch_size, H_prev, W_prev, C_prev) = A_prev.shape
-        (kernel_size_h, kernel_size_w, C_prev, C) = W.shape
+        (kernel_size_h, kernel_size_w, _, C) = W.shape
         stride_h, stride_w = self.stride
         padding_h, padding_w = self.padding
-
+        H, W = int((H_prev + 2 * padding_h - kernel_size_h) / stride_h) + 1, int(
+            (W_prev + 2 * padding_w - kernel_size_w) / stride_w) + 1
         dA_prev = np.zeros_like(A_prev)
         dW = np.zeros_like(W)
         db = np.zeros_like(b)
-
-        A_prev_pad = self.pad(A_prev, (padding_h, padding_w))
-
+        # TODO: Pad the input tensor with zeros.
+        A_prev_pad = np.pad(A_prev, ((0, 0), (padding_h, padding_h), (padding_w, padding_w), (0, 0)), mode="constant",
+                            constant_values=(0, 0))
+        # TODO: Pad the gradient of the cost with zeros.
+        dA_prev_pad = np.pad(dA_prev, ((0, 0), (padding_h, padding_h), (padding_w, padding_w), (0, 0)), mode="constant",
+                             constant_values=(0, 0))
         for i in range(batch_size):
+            # TODO: Get the slice of the padded input tensor corresponding to the current batch element.
             a_prev_pad = A_prev_pad[i]
-            da_prev_pad = dA_prev[i]
-
-            for h in range(self.output_h):
-                h_start = h * stride_h
-                h_end = h_start + kernel_size_h
-
-                for w in range(self.output_w):
-                    w_start = w * stride_w
-                    w_end = w_start + kernel_size_w
-
+            # TODO: Get the slice of the padded gradient of the cost corresponding to the current batch element.
+            da_prev_pad = dA_prev_pad[i]
+            for h in range(H):
+                for w in range(W):
                     for c in range(C):
+                        # TODO: Calculate the index of the current output pixel in the original input tensor.
+                        h_start = h * stride_h
+                        h_end = h_start + kernel_size_h
+                        w_start = w * stride_w
+                        w_end = w_start + kernel_size_w
                         a_slice = a_prev_pad[h_start:h_end, w_start:w_end, :]
-                        da_prev_pad[h_start:h_end, w_start:w_end, :] += np.multiply(dZ[i, h, w, c], W[..., c])
-                        dW[..., c] += np.multiply(dZ[i, h, w, c], a_slice)
-                        db[..., c] += dZ[i, h, w, c]
-
-            dA_prev[i, :, :, :] = da_prev_pad[padding_h:-padding_h, padding_w:-padding_w, :]
-
-        grads = [dW, db]
-        return dA_prev, grads
+                        # TODO: Calculate the gradient of the cost with respect to the current input pixel.
+                        if loss_function == "mse":
+                            da_prev_pad[h_start:h_end, w_start:w_end, :] += dZ[i, h, w, c] * W[c, :, :, :]
+                        elif loss_function == "bce":
+                            da_prev_pad[h_start:h_end, w_start:w_end, :] += dZ[i, h, w, c] * W[c, :, :, :] / (
+                                        1 - A_prev_pad[h_start:h_end, w_start:w_end, :].prod())
+                        # TODO: Update the gradient of the weights.
+                        dW[c, :, :, :] += da_prev_pad[h_start:h_end, w_start:w_end, :] * a_slice
+                        # TODO: Update the gradient of the bias.
+                        db[c] += da_prev_pad[h_start:h_end, w_start:w_end, :]
+            dA_prev[i, :, :, :] = da_prev_pad[i, :, :, :]
 
     def update_parameters(self, optimizer, grads):
         self.parameters = optimizer.update(grads, self.name)
