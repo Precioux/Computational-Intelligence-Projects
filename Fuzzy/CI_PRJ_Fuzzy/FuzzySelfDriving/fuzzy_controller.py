@@ -51,7 +51,7 @@ class FuzzyController:
         return fuzzy_values
 
     def fuzzify_left_dist(self, relative_left_dist):
-        fuzzy_values = []
+        fuzzy_values = {}
         value = relative_left_dist
 
         if value <= 0 or value >= 100:
@@ -59,20 +59,19 @@ class FuzzyController:
 
         if value <= 50:
             membership = 1 - (value / 50)
-            fuzzy_values.append(('close', membership))
+            fuzzy_values['close'] = membership
         else:
             membership = (value - 50) / 50
-            fuzzy_values.append(('far', membership))
+            fuzzy_values['far'] = membership
 
         if 35 <= value <= 65:
             membership = 1 - abs((value - 50) / 15)
-            fuzzy_values.append(('moderate', membership))
+            fuzzy_values['moderate'] = membership
 
         return fuzzy_values
 
-
     def fuzzify_right_dist(self, relative_right_dist):
-        fuzzy_values = []
+        fuzzy_values = {}
         value = relative_right_dist
 
         if value <= 0 or value >= 100:
@@ -80,27 +79,72 @@ class FuzzyController:
 
         if value <= 50:
             membership = 1 - (value / 50)
-            fuzzy_values.append(('close', membership))
+            fuzzy_values['close'] = membership
         else:
             membership = (value - 50) / 50
-            fuzzy_values.append(('far', membership))
+            fuzzy_values['far'] = membership
 
         if 35 <= value <= 65:
             membership = 1 - abs((value - 50) / 15)
-            fuzzy_values.append(('moderate', membership))
+            fuzzy_values['moderate'] = membership
 
         return fuzzy_values
 
+    # Interface
     def decide(self, relative_left_dist, relative_right_dist):
         # Call the fuzzification methods to obtain the fuzzy values for each input variable
         fuzzy_left_dist = self.fuzzify_left_dist(relative_left_dist)
         fuzzy_right_dist = self.fuzzify_right_dist(relative_right_dist)
-
+        print(fuzzy_left_dist)
+        print(fuzzy_right_dist)
+        print('result:')
         # Perform inference using fuzzy rules
-        # Implement your fuzzy inference rules here
+        fuzzy_output = {}
 
-        # Defuzzify the output variable
-        # Implement your defuzzification method here
 
-        # Return the final answer for rotation
+        # Rule 1: IF (d_L IS close_L) AND (d_R IS moderate_R) THEN Rotate IS low_right
+        if 'close' in fuzzy_left_dist and 'moderate' in fuzzy_right_dist:
+            fuzzy_output['low_right'] = min(fuzzy_left_dist['close'], fuzzy_right_dist['moderate'])
+        else:
+            fuzzy_output['low_right'] = 0
+
+        # Rule 2: IF (d_L IS close_L) AND (d_R IS far_R) THEN Rotate IS high_right
+        if 'close' in fuzzy_left_dist and 'far' in fuzzy_right_dist:
+            fuzzy_output['high_right'] = min(fuzzy_left_dist['close'], fuzzy_right_dist['far'])
+        else:
+            fuzzy_output['high_right'] = 0
+
+        # Rule 3: IF (d_L IS moderate_L) AND (d_R IS close_R) THEN Rotate IS low_left
+        if 'moderate' in fuzzy_left_dist and 'close' in fuzzy_right_dist:
+            fuzzy_output['low_left'] = min(fuzzy_left_dist['moderate'], fuzzy_right_dist['close'])
+        else:
+            fuzzy_output['low_left'] = 0
+
+        # Rule 4: IF (d_L IS far_L) AND (d_R IS close_R) THEN Rotate IS high_left
+        if 'far' in fuzzy_left_dist and 'close' in fuzzy_right_dist:
+            fuzzy_output['high_left'] = min(fuzzy_left_dist['far'], fuzzy_right_dist['close'])
+        else:
+            fuzzy_output['high_left'] = 0
+
+        # Rule 5: IF (d_L IS moderate_L) AND (d_R IS moderate_R) THEN Rotate IS nothing
+        if 'moderate' in fuzzy_left_dist and 'moderate' in fuzzy_right_dist:
+            fuzzy_output['nothing'] = min(fuzzy_left_dist['moderate'], fuzzy_right_dist['moderate'])
+        else:
+            fuzzy_output['nothing'] = 0
+
+        print(fuzzy_output)
         return 0
+
+
+
+    # def decide(self, relative_left_dist, relative_right_dist):
+    #     # Call the fuzzification methods to obtain the fuzzy values for each input variable
+    #     fuzzy_left_dist = self.fuzzify_left_dist(relative_left_dist)
+    #     fuzzy_right_dist = self.fuzzify_right_dist(relative_right_dist)
+    #
+    #     print(f'left')
+    #     print(fuzzy_left_dist)
+    #     print('right')
+    #     print(fuzzy_right_dist)
+    #
+    #     return 0
