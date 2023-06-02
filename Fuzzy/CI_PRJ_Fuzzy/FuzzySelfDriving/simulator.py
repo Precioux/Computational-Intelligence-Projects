@@ -205,7 +205,7 @@ def run():
         relative_right_dist = float(100 * right_dist / (left_dist + right_dist))
         center_dist = float(center_dist)
         if not car.crashed:
-            rotate_fuzzy_system = fuzzy_controller.FuzzyController(left_dist,center_dist,right_dist)
+            rotate_fuzzy_system = fuzzy_controller.FuzzyController()
             output_of_fuzzy = rotate_fuzzy_system.decide(relative_left_dist, relative_right_dist)
             car.angle += output_of_fuzzy
 
