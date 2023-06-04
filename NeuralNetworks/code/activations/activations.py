@@ -1,3 +1,5 @@
+from typing import Type
+
 import numpy as np
 from abc import ABC, abstractmethod
 
@@ -57,7 +59,7 @@ class Sigmoid(Activation):
 
 
 class ReLU(Activation):
-    def forward(self, Z: np.ndarray) -> np.ndarray:
+    def forward(self,  Z: np.ndarray) -> np.ndarray:
         """
         ReLU activation function.
             args:
@@ -133,8 +135,7 @@ class LinearActivation(Activation):
         return dZ
 
 
-
-def get_activation(activation: str) -> tuple:
+def get_activation(activation: str) -> Type[Sigmoid | ReLU | Tanh | LinearActivation]:
     """
     Returns the activation function and its derivative.
         args:

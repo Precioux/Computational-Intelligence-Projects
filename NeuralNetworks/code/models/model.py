@@ -45,7 +45,7 @@ class Model:
         returns:
             True if the layer is an activation function, False otherwise
         """
-        return isinstance(layer, Activation)
+        return isinstance(layer, Activation) or issubclass(layer, Activation)
 
     def forward(self, x):
         """
@@ -56,12 +56,22 @@ class Model:
             output of the model
         """
         tmp = []
-        A = x  # input
+        A = x
         for l in range(len(self.layers_names)):
-            if self.is_layer(self.layers_names[l]):
-                A = self.model[self.layers_names[l]].activation.forward(A)
-            if self.is_activation(self.layers_names[l]):
-                Z = self.model[self.layers_names[l]].forward(A)
+            layer_name = self.layers_names[l]
+            layer = self.model[layer_name]
+            print(f'layer_name : {layer_name}')
+            print(f'layer : {layer}')
+
+            if self.is_layer(layer):
+                print('layer detected')
+                A = layer.forward(A)
+                tmp.append(A.copy())
+
+            elif self.is_activation(layer):
+                print('activation detected')
+                A = layer.forward(self,Z=A)
+                tmp.append(A.copy())
 
         return tmp
 
@@ -108,12 +118,12 @@ class Model:
             loss
         """
         tmp = self.forward(x)
-        AL = tmp[-1]
-        loss = self.criterion.compute(AL, y)
-        dAL = self.criterion.backward(AL, y)
-        grads = self.backward(dAL, tmp, x)
-        self.update(grads)
-        return loss
+        # AL = tmp[-1]
+        # loss = self.criterion.compute(AL, y)
+        # dAL = self.criterion.backward(AL, y)
+        # grads = self.backward(dAL, tmp, x)
+        # self.update(grads)
+        return 0
 
     def save(self, name):
         """
