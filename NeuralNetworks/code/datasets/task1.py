@@ -40,13 +40,13 @@ X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, 
 # Step 6: Define the architecture
 print('Step 6: Define the architecture')
 arch = {
-    'FC1': FC(input_size=X_train.shape[1], output_size=128, name='FC'),
+    'FC1': FC(input_size=X_train.shape[1], output_size=128, name='FC1'),
     'activation1': get_activation('relu'),
-    'FC2': FC(input_size=128, output_size=64, name='FC'),
+    'FC2': FC(input_size=128, output_size=64, name='FC2'),
     'activation2': get_activation('relu'),
-    'FC3': FC(input_size=64, output_size=32, name='FC'),
+    'FC3': FC(input_size=64, output_size=32, name='FC3'),
     'activation3': get_activation('relu'),
-    'FC4': FC(input_size=32, output_size=1, name='FC'),
+    'FC4': FC(input_size=32, output_size=1, name='FC4'),
     'activation4': get_activation('linear'),  # Add linear activation for the final layer
 }
 

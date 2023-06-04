@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.ma
 
 
 class MeanSquaredError:
@@ -27,4 +28,10 @@ class MeanSquaredError:
             returns:
                 derivative of the mean squared error loss
         """
-        return y_pred - y_true
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        print(y_pred)
+        print("$$$$$")
+        print(y_true)
+        print("$$$$$$")
+        print(y_pred.T - y_true)
+        return (y_pred.T - y_true).T

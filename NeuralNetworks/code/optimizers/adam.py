@@ -3,6 +3,8 @@ import numpy as np
 class Adam:
     def __init__(self, layers_dict, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
         self.layers = {name: layer for name, layer in layers_dict.items() if hasattr(layer, 'parameters')}
+        print("*****************************************")
+        print(self.layers)
         self.learning_rate = learning_rate
         self.beta1 = beta1
         self.beta2 = beta2
@@ -16,6 +18,8 @@ class Adam:
             self.S[name] = s
 
     def update(self, grads, name, epoch):
+        print('IN ADAM')
+        print(f'Gotten name: {name}')
         layer = self.layers[name]
         params = []
         for i in range(len(grads)):

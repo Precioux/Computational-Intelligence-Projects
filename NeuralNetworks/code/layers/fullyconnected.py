@@ -52,28 +52,33 @@ class FC:
 
         # Forward part
         W, b = self.parameters
+        print(f'W : {W.shape}')
+        print(f'B : {b.shape}')
+
         # Add each item of the dot product to the bias
         bias_expanded = np.tile(b.T, (batch_size, 1))
+        print(f'B ex : {bias_expanded.shape}')
         Z = np.dot(A_prev_tmp, W.T)
         Z_with_bias = Z + bias_expanded
 
-        print('Weights:')
-        print(W.T)
-        print('Bias:')
-        print(bias_expanded)
-        print('A.Wt:')
-        print(Z)
-        print('Final output:')
-        print(Z_with_bias)
+        print(f'Z : {Z.shape}')
+        # print('Weights:')
+        # print(W.T)
+        # print('Bias:')
+        # print(bias_expanded)
+        # print('A.Wt:')
+        # print(Z)
+        # print('Final output:')
+        # print(Z_with_bias)
 
         return Z
 
     def backward(self, dZ, A_prev):
         print('Backward Step:')
-        print('dZ:')
-        print(dZ)
-        print('Input:')
-        print(A_prev)
+        print(f'dZ: {dZ.shape}')
+        # print(dZ)
+        print(f'A_prev: {A_prev.shape}')
+        # print(A_prev)
         A_prev_tmp = np.copy(A_prev)
 
         if len(A_prev_tmp.shape) > 2:
@@ -85,31 +90,37 @@ class FC:
         # Backward part
         W, b = self.parameters
         dW = np.dot(dZ.T, A_prev_tmp) / batch_size
-        print('dW:')
-        print(dW)
-        db = np.sum(dZ, axis=1, keepdims=True) / batch_size
-        print('db:')
-        print(db)
-        print(W)
-        print(dZ.T)
-        dA_prev = np.dot(dZ, W)
-        print('dA:')
-        print(dA_prev)
+        print(f'dW: {dW.shape}')
+        # print(dW)
+        db = np.sum(dZ, axis=0, keepdims=True) / batch_size
+        print(f'db: {db.shape}')
+        # print(db)
+        print(f'W: {W.shape}')
+        # print(W)
+        print(f'dZ: {dZ.shape}')
+        # print(dZ.T)
+        dA_prev = np.dot(dZ,W)
+        # print('dA:')
+        # print(dA_prev)
         grads = [dW, db]
 
-        if len(A_prev.shape) > 2:
+        if len(A_prev_tmp.shape) > 2:
             dA_prev = dA_prev.T.reshape(self.input_shape)
 
         return dA_prev, grads
 
-    def update_parameters(self, optimizer, grads):
+    def update(self, optimizer, grads,epoch):
         """
         Update the parameters of the layer.
             args:
                 optimizer: optimizer object
                 grads: list of gradients for the weights and bias
+                epoch : current epoch
         """
-        self.parameters = optimizer.update(grads, self.name)
+        g ={}
+        g[0] = grads[0]
+        g[1] = grads[1].T
+        self.parameters = optimizer.update(g, self.name,epoch)
 
 
 
