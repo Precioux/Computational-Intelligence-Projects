@@ -56,7 +56,7 @@ class Model:
             output of the model
         """
         tmp = []
-        A = x # input
+        A = x  # input
         for l in range(len(self.layers_names)):
             if self.is_layer(self.layers_names[l]):
                 A = self.model[self.layers_names[l]].activation.forward(A)
@@ -156,13 +156,28 @@ class Model:
         """
         last_index = min(index + batch_size, len(order))
         batch = order[index:last_index]
+        print(f'Batch is {batch}')
         if X.ndim == 4:
             bx = X[batch]
-            by = y[batch]
+            by = []
+            for e in batch:
+                counter = 0
+                for a in y:
+                    if counter == e:
+                        by.append(a)
+                    counter = counter + 1
+            print('fine1')
             return bx, by
         else:
-            bx = np.expand_dims(X[:, batch], axis=0)
-            by = np.expand_dims(y[:, batch], axis=0)
+            bx = X[batch, :]
+            by = []
+            for e in batch:
+                counter = 0
+                for a in y:
+                    if counter == e:
+                        by.append(a)
+                    counter = counter + 1
+            print('fine2')
             return bx, by
 
     def compute_loss(self, X, y, batch_size):
@@ -185,7 +200,7 @@ class Model:
             cost += self.criterion.compute(AL, by)
         return cost
 
-    def train(self, X, y, epochs, val=None, batch_size=32, shuffling=False, verbose=1, save_after=None):
+    def train(self, X, y, epochs, val=None, batch_size=3, shuffling=False, verbose=1, save_after=None):
         """
         Train the model.
         args:
@@ -198,14 +213,27 @@ class Model:
             verbose: if 1 print the loss after each epoch
             save_after: save the model after training
         """
+        print("#################################################3")
         train_cost = []
         val_cost = []
-        m = X.shape[0] if X.ndim == 4 else X.shape[1]
+        m = 0  # number of samples
+        if X.ndim == 4:  # image [batch_size, height, width, channels]
+            m = X.shape[0]
+        else:  # data [samples, features]
+            m = X.shape[1]
+
         for e in tqdm(range(1, epochs + 1)):
+            # generate a random order of indices for shuffling the training data. to introduce randomness and prevent
+            # any potential bias that may arise due to the order of samples in the dataset
             order = self.shuffle(m, shuffling)
+            print(f'order : {order}')
             cost = 0
+            print(f'times : {m // batch_size}')
             for b in range(m // batch_size):
+                print(f'b is {b}')
                 bx, by = self.batch(X, y, batch_size, b * batch_size, order)
+                print(f'bx = {bx}')
+                print(f'by = {by}')
                 cost += self.one_epoch(bx, by)
             train_cost.append(cost)
             if val is not None:

@@ -20,10 +20,13 @@ print(data.head())
 print('Number of samples: ')
 print(data.shape[0])
 
+
+
 # Step 3: Split the features and labels
 print('Step 3: Split the features and labels')
 X = data.drop('median_house_value', axis=1)
 y = data['median_house_value']
+
 
 # Step 4: Normalize the features
 print('Step 4: Normalize the features')
@@ -62,7 +65,8 @@ model = Model(arch, criterion, optimizer)
 # Step 10: Train the model with validation
 print('Step 10: Train the model with validation')
 epochs = 10  # Set the number of epochs
-batch_size = 32  # Set the batch size
+batch_size = 3  # Set the batch size
+
 X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)  # Create a validation set
 train_loss, val_loss = model.train(X_train, y_train, epochs, val=(X_val, y_val), batch_size=batch_size, shuffling=True, verbose=1)
 
