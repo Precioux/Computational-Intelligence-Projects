@@ -133,37 +133,33 @@ class Conv2D:
         dA_prev = np.zeros_like(A_prev)
         dW = np.zeros_like(W)
         db = np.zeros_like(b)
-        # TODO: Pad the input tensor with zeros.
+
+        # Pad the input tensor with zeros.
         A_prev_pad = np.pad(A_prev, ((0, 0), (padding_h, padding_h), (padding_w, padding_w), (0, 0)), mode="constant",
                             constant_values=(0, 0))
-        # TODO: Pad the gradient of the cost with zeros.
-        dA_prev_pad = np.pad(dA_prev, ((0, 0), (padding_h, padding_h), (padding_w, padding_w), (0, 0)), mode="constant",
-                             constant_values=(0, 0))
+
+        # Calculate the gradient of the cost with respect to the input tensor.
         for i in range(batch_size):
-            # TODO: Get the slice of the padded input tensor corresponding to the current batch element.
-            a_prev_pad = A_prev_pad[i]
-            # TODO: Get the slice of the padded gradient of the cost corresponding to the current batch element.
-            da_prev_pad = dA_prev_pad[i]
             for h in range(H):
                 for w in range(W):
                     for c in range(C):
-                        # TODO: Calculate the index of the current output pixel in the original input tensor.
+                        # Calculate the index of the current output pixel in the original input tensor.
                         h_start = h * stride_h
                         h_end = h_start + kernel_size_h
                         w_start = w * stride_w
                         w_end = w_start + kernel_size_w
-                        a_slice = a_prev_pad[h_start:h_end, w_start:w_end, :]
-                        # TODO: Calculate the gradient of the cost with respect to the current input pixel.
-                        if loss_function == "mse":
-                            da_prev_pad[h_start:h_end, w_start:w_end, :] += dZ[i, h, w, c] * W[c, :, :, :]
-                        elif loss_function == "bce":
-                            da_prev_pad[h_start:h_end, w_start:w_end, :] += dZ[i, h, w, c] * W[c, :, :, :] / (
-                                        1 - A_prev_pad[h_start:h_end, w_start:w_end, :].prod())
-                        # TODO: Update the gradient of the weights.
-                        dW[c, :, :, :] += da_prev_pad[h_start:h_end, w_start:w_end, :] * a_slice
-                        # TODO: Update the gradient of the bias.
-                        db[c] += da_prev_pad[h_start:h_end, w_start:w_end, :]
-            dA_prev[i, :, :, :] = da_prev_pad[i, :, :, :]
+                        a_slice = A_prev_pad[i, h_start:h_end, w_start:w_end, :]
+
+                        # Calculate the gradient of the cost with respect to the current input pixel.
+                        dA_prev[i, h_start:h_end, w_start:w_end, :] += dZ[i, h, w, c] * W[c, :, :, :]
+
+                        # Update the gradient of the weights.
+                        dW[c, :, :, :] += dZ[i, h, w, c] * a_slice
+
+                        # Update the gradient of the bias.
+                        db[c] += dZ[i, h, w, c]
+
+        return dA_prev
 
     def update_parameters(self, optimizer, grads):
         self.parameters = optimizer.update(grads, self.name)

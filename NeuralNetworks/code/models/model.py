@@ -1,7 +1,7 @@
-from ..layers.convolution2d import Conv2D
-from ..layers.maxpooling2d import MaxPool2D
-from ..layers.fullyconnected import FC
-from ..activations.activations import Activation, get_activation
+from NeuralNetworks.code.layers.convolution2d import *
+from NeuralNetworks.code.layers.maxpooling2d import MaxPool2D
+from NeuralNetworks.code.layers.fullyconnected import FC
+from NeuralNetworks.code.activations.activations import Activation, get_activation
 import pickle
 from tqdm import tqdm
 import numpy as np
@@ -56,12 +56,13 @@ class Model:
             output of the model
         """
         tmp = []
-        A = x
+        A = x # input
         for l in range(len(self.layers_names)):
-            Z = self.model[self.layers_names[l]].forward(A)
-            tmp.append(Z.copy())
-            A = self.model[self.layers_names[l]].activation.forward(Z)
-            tmp.append(A.copy())
+            if self.is_layer(self.layers_names[l]):
+                A = self.model[self.layers_names[l]].activation.forward(A)
+            if self.is_activation(self.layers_names[l]):
+                Z = self.model[self.layers_names[l]].forward(A)
+
         return tmp
 
     def backward(self, dAL, tmp, x):
