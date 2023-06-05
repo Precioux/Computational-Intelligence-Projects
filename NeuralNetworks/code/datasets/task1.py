@@ -13,6 +13,7 @@ from NeuralNetworks.code.optimizers.adam import Adam
 # Step 1: Load the dataset
 print('Step 1: Load the dataset')
 data = pd.read_csv('california_houses_price/california_housing_train.csv')
+data_test = pd.read_csv('california_houses_price/california_housing_test.csv')
 
 # Step 2: Explore the dataset
 print('Step 2: Explore the dataset')
@@ -87,3 +88,16 @@ plt.xlabel("Actual Values")
 plt.ylabel("Predicted Values")
 plt.title("Actual vs. Predicted Values")
 plt.show()
+
+# Step 14: Preprocess the data_test dataset
+# Drop unnecessary columns and normalize the features
+X_test_processed = scaler.transform(data_test.drop('median_house_value', axis=1))
+
+# Step 15: Perform predictions on the data_test dataset
+y_test_pred = model.predict(X_test_processed)
+
+# Step 16: Evaluate the model on the data_test dataset
+mse_test = mean_squared_error(data_test['median_house_value'], y_test_pred)
+rmse_test = np.sqrt(mse_test)
+print("Test Set Mean Squared Error:", mse_test)
+print("Test Set Root Mean Squared Error:", rmse_test)
