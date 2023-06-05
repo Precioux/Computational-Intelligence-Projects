@@ -2,7 +2,7 @@ import numpy as np
 
 
 class FC:
-    def __init__(self, input_size: int, output_size: int, name: str, initialize_method: str = "random"):
+    def __init__(self, input_size: int, output_size: int, name: str, initialize_method: str = "he"):
         self.input_size = input_size
         self.output_size = output_size
         self.name = name
@@ -37,7 +37,7 @@ class FC:
         print('Forward Step:')
         self.input_shape = A_prev.shape
         A_prev_tmp = np.copy(A_prev)
-        print(f'input shape: {self.input_shape}')
+        # print(f'input shape: {self.input_shape}')
 
         if len(A_prev_tmp.shape) > 2:
             print('yes to conv')
@@ -52,16 +52,16 @@ class FC:
 
         # Forward part
         W, b = self.parameters
-        print(f'W : {W.shape}')
-        print(f'B : {b.shape}')
+        # print(f'W : {W.shape}')
+        # print(f'B : {b.shape}')
 
         # Add each item of the dot product to the bias
         bias_expanded = np.tile(b.T, (batch_size, 1))
-        print(f'B ex : {bias_expanded.shape}')
+        # print(f'B ex : {bias_expanded.shape}')
         Z = np.dot(A_prev_tmp, W.T)
         Z_with_bias = Z + bias_expanded
 
-        print(f'Z : {Z.shape}')
+        # print(f'Z : {Z.shape}')
         # print('Weights:')
         # print(W.T)
         # print('Bias:')
@@ -70,15 +70,12 @@ class FC:
         # print(Z)
         # print('Final output:')
         # print(Z_with_bias)
+        # print("")
 
         return Z
 
     def backward(self, dZ, A_prev):
         print('Backward Step:')
-        print(f'dZ: {dZ.shape}')
-        # print(dZ)
-        print(f'A_prev: {A_prev.shape}')
-        # print(A_prev)
         A_prev_tmp = np.copy(A_prev)
 
         if len(A_prev_tmp.shape) > 2:
@@ -90,22 +87,13 @@ class FC:
         # Backward part
         W, b = self.parameters
         dW = np.dot(dZ.T, A_prev_tmp) / batch_size
-        print(f'dW: {dW.shape}')
-        # print(dW)
         db = np.sum(dZ, axis=0, keepdims=True) / batch_size
-        print(f'db: {db.shape}')
-        # print(db)
-        print(f'W: {W.shape}')
-        # print(W)
-        print(f'dZ: {dZ.shape}')
-        # print(dZ.T)
-        dA_prev = np.dot(dZ,W)
-        # print('dA:')
-        # print(dA_prev)
+        dA_prev = np.dot(dZ, W)
+
         grads = [dW, db]
 
         if len(A_prev_tmp.shape) > 2:
-            dA_prev = dA_prev.T.reshape(self.input_shape)
+            dA_prev = dA_prev.reshape(self.reshaped_shape)
 
         return dA_prev, grads
 
@@ -120,7 +108,19 @@ class FC:
         g ={}
         g[0] = grads[0]
         g[1] = grads[1].T
+        print('PARAMETERS')
+        print('before')
+        print('W')
+        print(self.parameters[0])
+        print('b')
+        print(self.parameters[1])
+        print('##############')
+        print('after')
         self.parameters = optimizer.update(g, self.name,epoch)
+        print('W')
+        print(self.parameters[0])
+        print('b')
+        print(self.parameters[1])
 
 
 

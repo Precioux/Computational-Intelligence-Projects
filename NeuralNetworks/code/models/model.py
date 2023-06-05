@@ -60,11 +60,11 @@ class Model:
         for l in range(len(self.layers_names)):
             layer_name = self.layers_names[l]
             layer = self.model[layer_name]
-            print(f'layer_name : {layer_name}')
-            print(f'layer : {layer}')
+            # print(f'layer_name : {layer_name}')
+            # print(f'layer : {layer}')
 
             if self.is_layer(layer):
-                print('layer detected')
+                # print('layer detected')
                 Z = layer.forward(A)  # Calculate the linear transformation Z using the layer's forward method
                 tmp.append(Z.copy())
                 tmp.append(A.copy())  # Append the current value of A to the list
@@ -72,7 +72,7 @@ class Model:
 
 
             elif self.is_activation(layer):
-                print('activation detected')
+                # print('activation detected')
                 A = layer.forward(self,Z=A)  # Calculate the activation function using the layer's forward method
                 tmp.append(Z.copy())  # Append the current value of Z to the list
                 tmp.append(A.copy())  # Append the current value of A to the list
@@ -130,14 +130,13 @@ class Model:
             loss
         """
         tmp = self.forward(x)
-        print('******************************************************')
-        print(len(tmp))
         AL = tmp[-1]
-        print(f'AL : {AL.shape}')
+        print('AL ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print(AL)
+        print('Y ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print(y)
         loss = self.criterion.compute(AL, y)
-        print(f'loss : {loss}')
         dAL = self.criterion.backward(AL, y)
-        print(f'dAL = {dAL.shape}')
         grads = self.backward(dAL, tmp, x)
         self.update(grads,epoch)
         return loss
@@ -250,18 +249,13 @@ class Model:
             m = X.shape[1]
 
         for e in tqdm(range(1, epochs + 1)):
-            print(f"EPOCH = {e}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+            print(f"EPOCH = {e} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
             # generate a random order of indices for shuffling the training data. to introduce randomness and prevent
             # any potential bias that may arise due to the order of samples in the dataset
             order = self.shuffle(m, shuffling)
-            print(f'order : {order}')
             cost = 0
-            print(f'times : {m // batch_size}')
             for b in range(m // batch_size):
-                print(f'b is {b}')
                 bx, by = self.batch(X, y, batch_size, b * batch_size, order)
-                print(f'bx = {bx.shape}')
-                print(f'by = {by}')
                 cost += self.one_epoch(bx, by,e)
             train_cost.append(cost)
             if val is not None:

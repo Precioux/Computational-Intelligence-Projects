@@ -3,8 +3,6 @@ import numpy as np
 class Adam:
     def __init__(self, layers_dict, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
         self.layers = {name: layer for name, layer in layers_dict.items() if hasattr(layer, 'parameters')}
-        print("*****************************************")
-        print(self.layers)
         self.learning_rate = learning_rate
         self.beta1 = beta1
         self.beta2 = beta2
