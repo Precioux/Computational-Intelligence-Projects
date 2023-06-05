@@ -15,10 +15,11 @@ class MeanSquaredError:
             returns:
                 mean squared error loss
         """
-        batch_size = y_pred.shape[1]
-        print('COST $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-        cost = np.sum(np.square((y_pred.T - y_true).T)) / (2 * batch_size)
-        print(cost)
+        batch_size = y_pred.shape[0]
+        print('THIS IS MEAN SQUERE ERROR')
+        print(f'batch size: {batch_size}')
+        cost = np.sum(np.square(y_pred.T - y_true.T)) / batch_size
+
         return np.squeeze(cost)
 
     def backward(self, y_pred, y_true):
@@ -30,4 +31,8 @@ class MeanSquaredError:
             returns:
                 derivative of the mean squared error loss
         """
-        return (y_pred.T - y_true).T
+        batch_size = y_pred.shape[0]
+        dMSE = (2 / batch_size) * (y_pred-y_true)
+        print('THIS IS BACKWARD OF MSE')
+        # print(dMSE.shape)
+        return dMSE

@@ -128,12 +128,12 @@ class MaxPool2D:
                         w_start = w * stridew
                         w_end = w_start + f_w
                         if self.mode == "max":
-                            a_prev_slice = A_prev[i, h_start:h_end, w_start:w_end, c]
+                            a_prev_slice = A_prev[i, h_start:h_end, w_start:w_end, :]
                             mask = self.create_mask_from_window(a_prev_slice)
-                            dA_prev[i, h_start:h_end, w_start:w_end, c] += np.multiply(mask, dZ[i, h, w, c])
+                            dA_prev[i, h_start:h_end, w_start:w_end, :] += np.multiply(mask, dZ[i, h, w, c])
                         elif self.mode == "average":
                             dz = dZ[i, h, w, c]
-                            dA_prev[i, h_start:h_end, w_start:w_end, c] += self.distribute_value(dz, (f_h, f_w))
+                            dA_prev[i, h_start:h_end, w_start:w_end, :] += self.distribute_value(dz, (f_h, f_w))
                         else:
                             raise ValueError("Invalid mode")
         # Don't change the return

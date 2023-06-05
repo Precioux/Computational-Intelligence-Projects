@@ -13,12 +13,12 @@ class Conv2D:
         self.stride = (stride, stride) if isinstance(stride, int) else stride
         self.padding = (padding, padding) if isinstance(padding, int) else padding
         self.parameters = [self.initialize_weights(), self.initialize_bias()]
-        print('Weights:')
-        print(self.parameters[0].shape)
-        print(self.parameters[0])
-        print('Bias:')
-        print(self.parameters[1].shape)
-        print(self.parameters[1])
+        # print('Weights:')
+        # print(self.parameters[0].shape)
+        # print(self.parameters[0])
+        # print('Bias:')
+        # print(self.parameters[1].shape)
+        # print(self.parameters[1])
 
     def initialize_weights(self):
         # Initialize weights
@@ -67,9 +67,17 @@ class Conv2D:
     def forward(self, A_prev):
         # Get the parameters of the CNN.
         W, b = self.parameters
+        print('IN CNN FORWARD')
+        # print(f'W : {W.shape}')
+        # print(f'b : {b.shape}')
 
         # Get the shape of the input.
         (batch_size, H_prev, W_prev, C_prev) = A_prev.shape
+        # print(f'input : {A_prev.shape}')
+        # print(f'batch_size :{batch_size}')
+        # print(f'H_prev : {H_prev}')
+        # print(f'W_prev : {W_prev}')
+        # print(f'C_prev : {C_prev}')
 
         # Get the shape of the kernel.
         (kernel_size_h, kernel_size_w, _, C) = W.shape
@@ -110,6 +118,7 @@ class Conv2D:
                         Z[i, h, w, c] = self.single_step_convolve(a_slice_prev, W_current_channel, b_current_channel)
 
         # Return the output matrix.
+        print(f'Z : {Z.shape}')
         return Z
 
     def backward(self, dZ, A_prev):
@@ -123,25 +132,32 @@ class Conv2D:
             dA_prev: gradient of the cost with respect to the input of the convolutional layer
             gradients: list of gradients with respect to the weights and bias
         """
+        print('IN CNN BACKWARD')
+        print(f'dZ : {dZ.shape}')
+        print(f'A_prev : {A_prev.shape}')
         W, b = self.parameters
+        print(f'b : {b.shape}')
+        print(f'W : {W.shape}')
         (batch_size, H_prev, W_prev, C_prev) = A_prev.shape
         (kernel_size_h, kernel_size_w, _, C) = W.shape
         stride_h, stride_w = self.stride
         padding_h, padding_w = self.padding
-        H, W = int((H_prev + 2 * padding_h - kernel_size_h) / stride_h) + 1, int(
+        Height, Width = int((H_prev + 2 * padding_h - kernel_size_h) / stride_h) + 1, int(
             (W_prev + 2 * padding_w - kernel_size_w) / stride_w) + 1
-        dA_prev = np.zeros_like(A_prev)
+        dA_prev = np.zeros_like(A_prev,dtype='float64')
         dW = np.zeros_like(W)
         db = np.zeros_like(b)
+        print(f'Height :{Height}')
+        print(f'Width : {Width}')
+        print(f'batch_size : {batch_size}')
 
         # Pad the input tensor with zeros.
         A_prev_pad = np.pad(A_prev, ((0, 0), (padding_h, padding_h), (padding_w, padding_w), (0, 0)), mode="constant",
                             constant_values=(0, 0))
-
         # Calculate the gradient of the cost with respect to the input tensor.
         for i in range(batch_size):
-            for h in range(H):
-                for w in range(W):
+            for h in range(dZ.shape[2]):
+                for w in range(dZ.shape[1]):
                     for c in range(C):
                         # Calculate the index of the current output pixel in the original input tensor.
                         h_start = h * stride_h
@@ -151,15 +167,19 @@ class Conv2D:
                         a_slice = A_prev_pad[i, h_start:h_end, w_start:w_end, :]
 
                         # Calculate the gradient of the cost with respect to the current input pixel.
-                        dA_prev[i, h_start:h_end, w_start:w_end, :] += dZ[i, h, w, c] * W[c, :, :, :]
+                        dA_prev[i, h_start:h_end, w_start:w_end, :] += dZ[i, h, w, c] * W[:, :, :, c]
 
                         # Update the gradient of the weights.
-                        dW[c, :, :, :] += dZ[i, h, w, c] * a_slice
+                        dW[:, :, :, c] += dZ[i, h, w, c] * a_slice
 
                         # Update the gradient of the bias.
-                        db[c] += dZ[i, h, w, c]
+                        db[:, :, :, c] += dZ[i, h, w, c]
+        grads = [dW, db]
+        print('CNN BACKWARD DONE')
+        return dA_prev, grads
 
-        return dA_prev
-
-    def update_parameters(self, optimizer, grads):
-        self.parameters = optimizer.update(grads, self.name)
+    def update(self, optimizer, grads,epoch):
+        g ={}
+        g[0] = grads[0]
+        g[1] = grads[1].T
+        self.parameters = optimizer.update(g, self.name,epoch)

@@ -55,29 +55,35 @@ class Model:
         returns:
             output of the model
         """
+        print('MODEL FORWARD STARTING')
         tmp = []  # Initialize an empty list to store intermediate values
         A = x  # Set the input as the initial value of A
         for l in range(len(self.layers_names)):
             layer_name = self.layers_names[l]
             layer = self.model[layer_name]
-            # print(f'layer_name : {layer_name}')
-            # print(f'layer : {layer}')
+            print(f'layer_name : {layer_name}')
 
             if self.is_layer(layer):
-                # print('layer detected')
+                print('layer detected')
                 Z = layer.forward(A)  # Calculate the linear transformation Z using the layer's forward method
+                print('Z is added')
                 tmp.append(Z.copy())
-                tmp.append(A.copy())  # Append the current value of A to the list
-                A = Z  # Update A with the value of Z for the next iteration
-
+                # tmp.append(A.copy())  # Append the current value of A to the list
+                A = Z  # Update A with the value of Z for the next iteratio
 
             elif self.is_activation(layer):
-                # print('activation detected')
+                print('activation detected')
+                print('A is added')
+                # print(f'Shape of A : {A.shape}')
                 A = layer.forward(self,Z=A)  # Calculate the activation function using the layer's forward method
-                tmp.append(Z.copy())  # Append the current value of Z to the list
+                # print(f'Shape of Z : {Z.shape}')
+                # print(f'Shape of A : {A.shape}')
+                # tmp.append(Z.copy())  # Append the current value of Z to the list
                 tmp.append(A.copy())  # Append the current value of A to the list
 
-
+            print(f'Shape of Z : {Z.shape}')
+            print(f'Shape of A : {A.shape}')
+        print('MODEL FORWARD ENDED')
         return tmp  # Return the list of intermediate values (Z and A)
 
     def backward(self, dAL, tmp, x):
@@ -90,19 +96,36 @@ class Model:
         returns:
             gradients of the model
         """
+        print('MODEL BACKWARD STARTING')
         dA = dAL
         grads = {}
         dZ = 0
         grad = 0
+        print(dA.shape)
         for l in reversed(range(len(self.layers_names))):
-            Z, A = tmp[l * 2], tmp[l * 2 + 1]
+            print(f'l : {l}')
             layer_name = self.layers_names[l]
+            print(f'{layer_name}')
             layer = self.model[layer_name]
             if self.is_layer(layer):
+                print('layer detected')
+                if l!=0:
+                    A = tmp[l-1]
+                else:
+                    A=x
+                print(f'A : {A.shape}')
+                print(f'dZ : {dZ.shape}')
                 dA, grad = self.model[self.layers_names[l]].backward(dZ, A)
+                print(f'dA : {dA.shape}')
                 grads[self.layers_names[l]] = grad
             else:
+                print('Activation detected')
+                Z = tmp[l-1]
+                print(f'Z : {Z.shape}')
+                print(f'dA : {dA.shape}')
                 dZ = dA * self.model[self.layers_names[l]].backward(self, dA, Z=Z)
+                print(f'dZ : {dZ.shape}')
+        print('MODEL BACKWARD ENDED')
         return grads
 
     def update(self, grads,epoch):
@@ -131,13 +154,20 @@ class Model:
         """
         tmp = self.forward(x)
         AL = tmp[-1]
-        print('AL ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
-        print(AL)
-        print('Y ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
-        print(y)
-        loss = self.criterion.compute(AL, y)
-        dAL = self.criterion.backward(AL, y)
+        # print('AL ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        # print(AL.shape)
+        # print('Y ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        # print(y)
+        y_array = np.array(y)  # Convert list to array
+        y_array_2d = y_array[:, np.newaxis]  # Convert 1D array to 2D array (nx1)
+        print(y_array_2d.shape)
+        loss = self.criterion.compute(AL, y_array_2d)
+        print(f'LOSS : {loss}')
+        print('calling backward on loss func')
+        dAL = self.criterion.backward(AL, y_array_2d)
+        print('calling backward on layer')
         grads = self.backward(dAL, tmp, x)
+        print('updating parameters')
         self.update(grads,epoch)
         return loss
 
@@ -182,7 +212,7 @@ class Model:
         """
         last_index = min(index + batch_size, len(order))
         batch = order[index:last_index]
-        print(f'Batch is {batch}')
+        # print(f'Batch is {batch}')
         if X.ndim == 4:
             bx = X[batch]
             by = []
@@ -192,7 +222,7 @@ class Model:
                     if counter == e:
                         by.append(a)
                     counter = counter + 1
-            print('fine1')
+            # print('fine1')
             return bx, by
         else:
             bx = X[batch, :]
@@ -203,7 +233,7 @@ class Model:
                     if counter == e:
                         by.append(a)
                     counter = counter + 1
-            print('fine2')
+    
             return bx, by
 
     def compute_loss(self, X, y, batch_size):
@@ -223,7 +253,9 @@ class Model:
             bx, by = self.batch(X, y, batch_size, b * batch_size, order)
             tmp = self.forward(bx)
             AL = tmp[-1]
-            cost += self.criterion.compute(AL, by)
+            by_array = np.array(by)  # Convert list to array
+            by_array_2d = by_array[:, np.newaxis]  # Convert 1D array to 2D array (nx1)
+            cost += self.criterion.compute(AL, by_array_2d)
         return cost
 
     def train(self, X, y, epochs, val=None, batch_size=3, shuffling=False, verbose=1, save_after=None):
@@ -239,17 +271,19 @@ class Model:
             verbose: if 1 print the loss after each epoch
             save_after: save the model after training
         """
-        print("#################################################3")
+        print('TRAINING DATA STARTED...')
         train_cost = []
         val_cost = []
         m = 0  # number of samples
+
         if X.ndim == 4:  # image [batch_size, height, width, channels]
             m = X.shape[0]
         else:  # data [samples, features]
             m = X.shape[1]
 
+
         for e in tqdm(range(1, epochs + 1)):
-            print(f"EPOCH = {e} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+            print(f"EPOCH = {e} ")
             # generate a random order of indices for shuffling the training data. to introduce randomness and prevent
             # any potential bias that may arise due to the order of samples in the dataset
             order = self.shuffle(m, shuffling)

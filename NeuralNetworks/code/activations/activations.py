@@ -53,7 +53,7 @@ class Sigmoid(Activation):
             returns:
                 derivative of the cost with respect to Z
         """
-        A = self.forward(Z)
+        A = 1 / (1 + np.exp(-Z)) #forward
         dZ = dA * A * (1 - A)
         return dZ
 
@@ -79,6 +79,9 @@ class ReLU(Activation):
             returns:
                 derivative of the cost with respect to Z
         """
+        # print('IN RELU')
+        # print(dA.shape)
+        # print(Z.shape)
         dZ = np.array(dA, copy=True)
         dZ[Z <= 0] = 0
         return dZ

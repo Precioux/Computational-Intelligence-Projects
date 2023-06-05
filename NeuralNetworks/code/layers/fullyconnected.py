@@ -37,14 +37,13 @@ class FC:
         print('Forward Step:')
         self.input_shape = A_prev.shape
         A_prev_tmp = np.copy(A_prev)
-        # print(f'input shape: {self.input_shape}')
+        print(f'input shape: {self.input_shape}')
 
         if len(A_prev_tmp.shape) > 2:
             print('yes to conv')
             batch_size = A_prev_tmp.shape[0]
-            print(f'batch size: {batch_size}')
-            print(f'tmp = {A_prev_tmp.reshape(batch_size, -1).T}')
-            A_prev_tmp = A_prev_tmp.reshape(batch_size, -1).T
+            A_prev_tmp = A_prev_tmp.reshape(batch_size, -1)
+
         else:
             batch_size = A_prev_tmp.shape[0]
 
@@ -58,7 +57,10 @@ class FC:
         # Add each item of the dot product to the bias
         bias_expanded = np.tile(b.T, (batch_size, 1))
         # print(f'B ex : {bias_expanded.shape}')
-        Z = np.dot(A_prev_tmp, W.T)
+        # print(f'W : {W.shape}')
+        # print(f'A_prev : {A_prev_tmp.shape}')
+        # print(f'bias : {bias_expanded.shape}')
+        Z = np.dot(W, A_prev_tmp.T).T
         Z_with_bias = Z + bias_expanded
 
         # print(f'Z : {Z.shape}')
@@ -80,21 +82,26 @@ class FC:
 
         if len(A_prev_tmp.shape) > 2:
             batch_size = A_prev_tmp.shape[0]
-            A_prev_tmp = A_prev_tmp.reshape(batch_size, -1).T
+            A_prev_tmp = A_prev_tmp.reshape(batch_size, -1)
         else:
             batch_size = A_prev_tmp.shape[0]
 
         # Backward part
         W, b = self.parameters
+        print('CALCULARING dW')
+        print(f'W : {W.shape}')
+        print(f'dZ : {dZ.shape}')
+        print(f'A_prev : {A_prev_tmp.shape}')
         dW = np.dot(dZ.T, A_prev_tmp) / batch_size
         db = np.sum(dZ, axis=0, keepdims=True) / batch_size
         dA_prev = np.dot(dZ, W)
-
         grads = [dW, db]
-
-        if len(A_prev_tmp.shape) > 2:
-            dA_prev = dA_prev.reshape(self.reshaped_shape)
-
+        # print(f'A_prev_tmp.shape : {A_prev_tmp.shape}')
+        if self.input_shape is not None:
+            print('YES TO CONV')
+            dA_prev = dA_prev.reshape(self.input_shape)
+        # print(f'dA_prev :{dA_prev.shape}')
+        print('FC backward done!')
         return dA_prev, grads
 
     def update(self, optimizer, grads,epoch):
@@ -109,18 +116,18 @@ class FC:
         g[0] = grads[0]
         g[1] = grads[1].T
         print('PARAMETERS')
-        print('before')
         print('W')
-        print(self.parameters[0])
+        print(self.parameters[0].shape)
         print('b')
-        print(self.parameters[1])
+        print(self.parameters[1].shape)
         print('##############')
-        print('after')
-        self.parameters = optimizer.update(g, self.name,epoch)
+        print('GRADS')
         print('W')
-        print(self.parameters[0])
+        print(grads[0].shape)
         print('b')
-        print(self.parameters[1])
+        print(grads[1].shape)
+        self.parameters = optimizer.update(g, self.name,epoch)
+
 
 
 
