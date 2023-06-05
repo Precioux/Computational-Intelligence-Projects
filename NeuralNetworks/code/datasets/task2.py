@@ -40,21 +40,6 @@ arch = {
     'Activation2': get_activation('sigmoid'),  # Use sigmoid activation for binary classification
 }
 
-
-# arch = {
-#     'Conv1': Conv2D(in_channels=1, out_channels=32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), name='Conv1'),
-#     'MaxPool1': MaxPool2D(kernel_size=(2, 2), stride=(2, 2), mode='max'),
-#     'Conv2': Conv2D(in_channels=32, out_channels=64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), name='Conv2'),
-#     'MaxPool2': MaxPool2D(kernel_size=(2, 2), stride=(2, 2), mode='max'),
-#     'Conv3': Conv2D(in_channels=64, out_channels=128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), name='Conv3'),
-#     'MaxPool3': MaxPool2D(kernel_size=(2, 2), stride=(2, 2), mode='max'),
-#     'Conv4': Conv2D(in_channels=128, out_channels=256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), name='Conv4'),
-#     'MaxPool4': MaxPool2D(kernel_size=(2, 2), stride=(2, 2), mode='max'),
-#     'Activation1': get_activation('relu'),
-#     'Activation2': get_activation('sigmoid'),  # Use sigmoid activation for binary classification
-# }
-
-
 criterion = BinaryCrossEntropy()
 optimizer = Adam(arch, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8)
 

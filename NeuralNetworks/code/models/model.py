@@ -68,21 +68,14 @@ class Model:
                 Z = layer.forward(A)  # Calculate the linear transformation Z using the layer's forward method
                 print('Z is added')
                 tmp.append(Z.copy())
-                # tmp.append(A.copy())  # Append the current value of A to the list
-                A = Z  # Update A with the value of Z for the next iteratio
+                A = Z  # Update A with the value of Z for the next iteration
 
             elif self.is_activation(layer):
                 print('activation detected')
-                print('A is added')
-                # print(f'Shape of A : {A.shape}')
                 A = layer.forward(self,Z=A)  # Calculate the activation function using the layer's forward method
-                # print(f'Shape of Z : {Z.shape}')
-                # print(f'Shape of A : {A.shape}')
-                # tmp.append(Z.copy())  # Append the current value of Z to the list
                 tmp.append(A.copy())  # Append the current value of A to the list
 
-            print(f'Shape of Z : {Z.shape}')
-            print(f'Shape of A : {A.shape}')
+
         print('MODEL FORWARD ENDED')
         return tmp  # Return the list of intermediate values (Z and A)
 
@@ -101,9 +94,7 @@ class Model:
         grads = {}
         dZ = 0
         grad = 0
-        print(dA.shape)
         for l in reversed(range(len(self.layers_names))):
-            print(f'l : {l}')
             layer_name = self.layers_names[l]
             print(f'{layer_name}')
             layer = self.model[layer_name]
@@ -113,18 +104,12 @@ class Model:
                     A = tmp[l-1]
                 else:
                     A=x
-                print(f'A : {A.shape}')
-                print(f'dZ : {dZ.shape}')
                 dA, grad = self.model[self.layers_names[l]].backward(dZ, A)
-                print(f'dA : {dA.shape}')
                 grads[self.layers_names[l]] = grad
             else:
                 print('Activation detected')
                 Z = tmp[l-1]
-                print(f'Z : {Z.shape}')
-                print(f'dA : {dA.shape}')
                 dZ = dA * self.model[self.layers_names[l]].backward(self, dA, Z=Z)
-                print(f'dZ : {dZ.shape}')
         print('MODEL BACKWARD ENDED')
         return grads
 
@@ -135,10 +120,9 @@ class Model:
             grads: gradients of the model
             epoch : current epoch
         """
-        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        print('UPDATING PARAMETERS')
         for layer_name in self.layers_names:
             if self.is_layer(self.model[layer_name]) and not isinstance(self.model[layer_name], MaxPool2D):
-                print(layer_name)
                 self.model[layer_name].update(self.optimizer,grads[layer_name],epoch)
 
     def one_epoch(self, x, y,epoch):
@@ -152,22 +136,16 @@ class Model:
         returns:
             loss
         """
+        print('ONE EPOCH STARTED...')
         tmp = self.forward(x)
         AL = tmp[-1]
-        # print('AL ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
-        # print(AL.shape)
-        # print('Y ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
-        # print(y)
         y_array = np.array(y)  # Convert list to array
         y_array_2d = y_array[:, np.newaxis]  # Convert 1D array to 2D array (nx1)
         print(y_array_2d.shape)
         loss = self.criterion.compute(AL, y_array_2d)
         print(f'LOSS : {loss}')
-        print('calling backward on loss func')
         dAL = self.criterion.backward(AL, y_array_2d)
-        print('calling backward on layer')
         grads = self.backward(dAL, tmp, x)
-        print('updating parameters')
         self.update(grads,epoch)
         return loss
 
@@ -212,7 +190,7 @@ class Model:
         """
         last_index = min(index + batch_size, len(order))
         batch = order[index:last_index]
-        # print(f'Batch is {batch}')
+
         if X.ndim == 4:
             bx = X[batch]
             by = []
@@ -222,7 +200,6 @@ class Model:
                     if counter == e:
                         by.append(a)
                     counter = counter + 1
-            # print('fine1')
             return bx, by
         else:
             bx = X[batch, :]
@@ -233,7 +210,7 @@ class Model:
                     if counter == e:
                         by.append(a)
                     counter = counter + 1
-    
+
             return bx, by
 
     def compute_loss(self, X, y, batch_size):

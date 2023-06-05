@@ -17,7 +17,6 @@ class Adam:
 
     def update(self, grads, name, epoch):
         print('IN ADAM')
-        print(f'Gotten name: {name}')
         layer = self.layers[name]
         params = []
         for i in range(len(grads)):

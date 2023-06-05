@@ -42,6 +42,7 @@ class MaxPool2D:
             returns:
                 A: output of the max pooling layer
         """
+        print('MAX POOLING FORWARD STARTED...')
         # Get dimensions of input
         (batch_size, H_prev, W_prev, C_prev) = A_prev.shape
         # Get dimensions of filter
@@ -75,7 +76,7 @@ class MaxPool2D:
                             A[i, h, w, c] = np.mean(a_prev_slice)
                         else:
                             raise ValueError("Invalid mode")
-
+        print('MAX POOLING FORWARD ENDED')
         return A
 
     def create_mask_from_window(self, x):
@@ -113,6 +114,7 @@ class MaxPool2D:
             returns:
                 dA_prev: gradient of cost with respect to the input of the max pooling layer
         """
+        print('MAX POOLING BACKWARD STARTED')
         # Implement backward pass for max pooling layer
         (f_h, f_w) = self.kernel_size
         strideh, stridew = self.stride
@@ -136,5 +138,6 @@ class MaxPool2D:
                             dA_prev[i, h_start:h_end, w_start:w_end, :] += self.distribute_value(dz, (f_h, f_w))
                         else:
                             raise ValueError("Invalid mode")
+        print('MAX POOLING BACKWARD ENDED')
         # Don't change the return
         return dA_prev, None

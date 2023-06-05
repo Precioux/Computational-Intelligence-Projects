@@ -79,9 +79,6 @@ class ReLU(Activation):
             returns:
                 derivative of the cost with respect to Z
         """
-        # print('IN RELU')
-        # print(dA.shape)
-        # print(Z.shape)
         dZ = np.array(dA, copy=True)
         dZ[Z <= 0] = 0
         return dZ
