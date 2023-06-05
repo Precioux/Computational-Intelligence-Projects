@@ -4,6 +4,8 @@ from matplotlib.image import imread
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+
 from NeuralNetworks.code.layers.fullyconnected import FC
 from NeuralNetworks.code.layers.convolution2d import Conv2D
 from NeuralNetworks.code.layers.maxpooling2d import MaxPool2D
@@ -21,11 +23,17 @@ num_rows, num_cols = df.shape
 X = df.drop('label', axis=1)  # Features (pixel columns)
 y = df['label']  # Labels
 
-# Split the data into train and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+scaler = MinMaxScaler()
+# Fit the scaler to your data
+scaler.fit(X)
+# Apply the normalization to your data
+X_normalized = scaler.transform(X)
 
-X_train = X_train.values.reshape(-1, 28, 28, 1)
-X_test = X_test.values.reshape(-1, 28, 28, 1)
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X_normalized, y, test_size=0.2, random_state=42)
+
+X_train = X_train.reshape(-1, 28, 28, 1)
+X_test = X_test.reshape(-1, 28, 28, 1)
 arch = {
     'Conv1': Conv2D(in_channels=1, out_channels=32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), name='Conv1'),
     'MaxPool1': MaxPool2D(kernel_size=(2, 2), stride=(2, 2), mode='max'),
@@ -57,7 +65,7 @@ model.save('trained_model')
 # Load the saved model
 saved_model = Model.load('trained_model')
 
-# Apply the loaded model to X_test
+# predict
 y_pred = saved_model.predict(X_test)
 
 # Evaluate the performance on the test set
