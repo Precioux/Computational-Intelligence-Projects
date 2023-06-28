@@ -38,7 +38,7 @@ def generate_chromosome(length):
 
 
 # READING GAME LEVEL
-def read_level_game(test_case_name):
+def get_level(test_case_name):
     path = "./attachments/levels/" + test_case_name
     with open(path, 'r') as file:
         game_plate = file.readline()
@@ -46,15 +46,16 @@ def read_level_game(test_case_name):
     return game_plate
 
 
-def generate_initial_population(number_of_population, game_plate_string, score_mode):
-    print(f'Game is now  : {game_plate_string}')
-    game = Game(game_plate_string)
-    chromosome_length = len(game_plate_string)
+def generate_population(population, game_board, score_mode):
+    print(f'Game is now  : {game_board}')
+    print(f'Creating game...')
+    game = Game(game_board)
+    chromosome_length = len(game_board)
     array_of_chromosome = []
-    for i in range(number_of_population):
+    for i in range(population):
         print(f'Creating Chromosome No.{i}')
         chromosome_string = generate_chromosome(chromosome_length)
-        print('Getting score of it...')
+        print('Getting score...')
         chromosome_score, chromosome_failure_points = game.get_score(chromosome_string, score_mode)
         chromosome = Chromosome(chromosome_string, chromosome_score, 1, chromosome_failure_points)
         array_of_chromosome.append(chromosome)

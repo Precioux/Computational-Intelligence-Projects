@@ -25,7 +25,7 @@ class Game:
         # Get an action sequence and determine the steps taken/score
         # Return a tuple, the first one indicates if these actions result in victory
         # and the second one shows the steps taken
-        print('Getting score function:')
+        print('Scoring...')
         game_plate = self.game_plate
         length_game_plate = len(game_plate)
         failure_points = []

@@ -14,7 +14,6 @@ class Conv2D:
         self.padding = (padding, padding) if isinstance(padding, int) else padding
         self.parameters = [self.initialize_weights(), self.initialize_bias()]
 
-
     def initialize_weights(self):
         # Initialize weights
         kernel_shape = (self.kernel_size[0] // self.stride[0], self.kernel_size[1] // self.stride[1], self.in_channels,

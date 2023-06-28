@@ -72,9 +72,8 @@ class Model:
 
             elif self.is_activation(layer):
                 print('activation detected')
-                A = layer.forward(self,Z=A)  # Calculate the activation function using the layer's forward method
+                A = layer.forward(self, Z=A)  # Calculate the activation function using the layer's forward method
                 tmp.append(A.copy())  # Append the current value of A to the list
-
 
         print('MODEL FORWARD ENDED')
         return tmp  # Return the list of intermediate values (Z and A)
@@ -100,20 +99,20 @@ class Model:
             layer = self.model[layer_name]
             if self.is_layer(layer):
                 print('layer detected')
-                if l!=0:
-                    A = tmp[l-1]
+                if l != 0:
+                    A = tmp[l - 1]
                 else:
-                    A=x
+                    A = x
                 dA, grad = self.model[self.layers_names[l]].backward(dZ, A)
                 grads[self.layers_names[l]] = grad
             else:
                 print('Activation detected')
-                Z = tmp[l-1]
+                Z = tmp[l - 1]
                 dZ = dA * self.model[self.layers_names[l]].backward(self, dA, Z=Z)
         print('MODEL BACKWARD ENDED')
         return grads
 
-    def update(self, grads,epoch):
+    def update(self, grads, epoch):
         """
         Update the model.
         args:
@@ -123,9 +122,9 @@ class Model:
         print('UPDATING PARAMETERS')
         for layer_name in self.layers_names:
             if self.is_layer(self.model[layer_name]) and not isinstance(self.model[layer_name], MaxPool2D):
-                self.model[layer_name].update(self.optimizer,grads[layer_name],epoch)
+                self.model[layer_name].update(self.optimizer, grads[layer_name], epoch)
 
-    def one_epoch(self, x, y,epoch):
+    def one_epoch(self, x, y, epoch):
         """
         One epoch of training.
         args:
@@ -146,7 +145,7 @@ class Model:
         print(f'LOSS : {loss}')
         dAL = self.criterion.backward(AL, y_array_2d)
         grads = self.backward(dAL, tmp, x)
-        self.update(grads,epoch)
+        self.update(grads, epoch)
         return loss
 
     def save(self, name):
@@ -258,7 +257,6 @@ class Model:
         else:  # data [samples, features]
             m = X.shape[1]
 
-
         for e in tqdm(range(1, epochs + 1)):
             print(f"EPOCH = {e} ")
             # generate a random order of indices for shuffling the training data. to introduce randomness and prevent
@@ -267,7 +265,7 @@ class Model:
             cost = 0
             for b in range(m // batch_size):
                 bx, by = self.batch(X, y, batch_size, b * batch_size, order)
-                cost += self.one_epoch(bx, by,e)
+                cost += self.one_epoch(bx, by, e)
             train_cost.append(cost)
             if val is not None:
                 val_cost.append(self.compute_loss(val[0], val[1], batch_size))

@@ -1,6 +1,7 @@
 from generation import *
 from chromosome import *
 import math
+
 MAX_GENERATION = 10000
 
 
@@ -27,7 +28,7 @@ def find_min_score(array_of_chromosomes):
     return array_of_chromosomes[0].score
 
 
-def choose_two_parents(array_of_chromosomes):
+def choose_mom_and_dad(array_of_chromosomes):
     parent1, parent2 = random.sample(array_of_chromosomes, 2)
     return parent1, parent2
 
@@ -35,15 +36,17 @@ def choose_two_parents(array_of_chromosomes):
 def selection(array_of_prev_chromosomes, selection_mode):
     selected_parents = []
     len_population = len(array_of_prev_chromosomes)
-
+    print('SELECTION STEP:')
     # randomly (with their scores as their weights) select from previous generation
     if selection_mode == 'random':
+        print('SELECTING RANDOMLY..')
         score_weights = return_scores(array_of_prev_chromosomes)
         selected_parents += random.choices(list(array_of_prev_chromosomes), weights=score_weights,
                                            k=math.ceil(len_population * 0.5))
 
     # sort array_of_prev_chromosomes and take top chromosomes
     elif selection_mode == 'best':
+        print('SELECTING BEST PARENTS..')
         sort_by_score(array_of_prev_chromosomes)
         selected_parents += array_of_prev_chromosomes[:math.ceil(len_population * 0.5)]
 
@@ -51,6 +54,8 @@ def selection(array_of_prev_chromosomes, selection_mode):
 
 
 def crossover(chromosome1, chromosome2, crossover_point, crossover_mode):
+    print('CROSS OVER STEP:')
+    print(f'CROSS OVER MODE : {crossover_mode}')
     # caution: chromosomes are objects here not their strings!
     offspring1, offspring2 = "", ""
     chromosome_length = len(chromosome1.string)
@@ -65,20 +70,25 @@ def crossover(chromosome1, chromosome2, crossover_point, crossover_mode):
         offspring2 = chromosome2.string[:crossover_point] + chromosome1.string[crossover_point:]
 
     elif crossover_mode == 'random 2':
-        crossing_points = random.sample(range(2,chromosome_length-2), 2)
+        crossing_points = random.sample(range(2, chromosome_length - 2), 2)
         crossing_points.sort()
-        offspring1 = chromosome1.string[0:crossing_points[0]] + chromosome2.string[crossing_points[0]:crossing_points[1]] + chromosome1.string[crossing_points[1]:]
-        offspring2 = chromosome2.string[0:crossing_points[0]] + chromosome1.string[crossing_points[0]:crossing_points[1]] + chromosome2.string[crossing_points[1]:]
+        offspring1 = chromosome1.string[0:crossing_points[0]] + chromosome2.string[crossing_points[0]:crossing_points[
+            1]] + chromosome1.string[crossing_points[1]:]
+        offspring2 = chromosome2.string[0:crossing_points[0]] + chromosome1.string[crossing_points[0]:crossing_points[
+            1]] + chromosome2.string[crossing_points[1]:]
 
 
     elif crossover_mode == 'specified 2':
-        offspring1 = chromosome1.string[:crossover_point[0]] + chromosome2.string[crossover_point[0]:crossover_point[1]] + chromosome1.string[crossover_point[1]:]
-        offspring2 = chromosome2.string[:crossover_point[0]] + chromosome1.string[crossover_point[0]:crossover_point[1]] + chromosome2.string[crossover_point[1]:]
+        offspring1 = chromosome1.string[:crossover_point[0]] + chromosome2.string[crossover_point[0]:crossover_point[
+            1]] + chromosome1.string[crossover_point[1]:]
+        offspring2 = chromosome2.string[:crossover_point[0]] + chromosome1.string[crossover_point[0]:crossover_point[
+            1]] + chromosome2.string[crossover_point[1]:]
 
     return offspring1, offspring2
 
 
 def mutation(chromosome, mutation_probability, game, score_mode):
+    print('MUTATION PART:')
     chromosome_failure_points = chromosome.failure_points
     if len(chromosome_failure_points) > 0:
         mutation_index = random.sample(chromosome_failure_points, 1)[0]
@@ -90,7 +100,7 @@ def mutation(chromosome, mutation_probability, game, score_mode):
         new_score, new_failure_points = game.get_score(chromosome.string, score_mode)
         chromosome.score = new_score
         chromosome.failure_points = new_failure_points
-        # chromosome.update_score_failurepoints(new_score, new_failure_points)
+
 
 
 def check_goal_chromosome(new_generation):
@@ -135,37 +145,48 @@ class Genetic:
 
             # selection step
             selected_parents = selection(self.generations[current_generation - 1], self.selection_mode)
+            print('PARENTS SELECTED:')
+            for parent in selected_parents:
+                print(parent.string)
 
             # crossover step
             new_generation, new_generation_strings = [], []
             while True:
-
-                parent1, parent2 = choose_two_parents(selected_parents)
-                child1, child2 = crossover(copy.deepcopy(parent1), copy.deepcopy(parent2), self.crossover_point, self.crossover_mode)
-
+                print('Choosing mom and dad!')
+                parent1, parent2 = choose_mom_and_dad(selected_parents)
+                print(f'Mom : {parent1.string}')
+                print(f'Dad : {parent2.string}')
+                child1, child2 = crossover(copy.deepcopy(parent1), copy.deepcopy(parent2), self.crossover_point,
+                                           self.crossover_mode)
+                print(f'Child 1 : {child1}')
+                print(f'Child 2 : {child2}')
                 if child1 not in new_generation_strings:
                     score1, failure_points1 = game.get_score(child1, self.score_mode)
                     new_generation.append(Chromosome(child1, score1, current_generation, failure_points1))
                     new_generation_strings.append(child1)
-                if len(new_generation_strings) == math.ceil(len_population * 0.7):
+                if len(new_generation_strings) == math.ceil(len_population * 0.7):  # till 70 pop is new
                     break
 
                 if child2 not in new_generation_strings:
                     score2, failure_points2 = game.get_score(child2, self.score_mode)
                     new_generation.append(Chromosome(child2, score2, current_generation, failure_points2))
                     new_generation_strings.append(child2)
-                if len(new_generation_strings) == math.ceil(len_population * 0.7):
+                if len(new_generation_strings) == math.ceil(len_population * 0.7):  # till 70 pop is new
                     break
 
-            new_generation += selected_parents
+            new_generation += selected_parents  # its lambda+mio, we remember parents too
 
             # mutation step
             self.generations[current_generation] = new_generation
             for chromosome in self.generations[current_generation]:
                 if random.random() < self.mutation_prob:
+                    print('Getting mutated...')
+                    print(f'before: {chromosome.string}')
                     mutation(chromosome, self.mutation_prob, game, self.score_mode)
-
-            self.generation_average_scores[current_generation] = calculate_average_score(self.generations[current_generation])
+                    print(f'after: {chromosome.string}')
+            print(f'Getting statics of Generation No.{current_generation}...')
+            self.generation_average_scores[current_generation] = calculate_average_score(
+                self.generations[current_generation])
             self.generation_max_score[current_generation] = find_max_score(self.generations[current_generation])
             self.generation_min_score[current_generation] = find_min_score(self.generations[current_generation])
 
