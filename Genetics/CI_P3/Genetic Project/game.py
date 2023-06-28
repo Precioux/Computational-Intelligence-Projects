@@ -7,7 +7,7 @@ class Game:
         # Store level length to determine if a sequence of action passes all the steps
         self.game_plate = game_plate
 
-    def calculate_maximum_substring_length(self, failure_points):
+    def get_max_substr_len(self, failure_points):
         game_plate = self.game_plate
         length_game_plate = len(game_plate)
         substring_length = []
@@ -79,13 +79,12 @@ class Game:
         if actions[-1] == "1":
             scores += 1  # game is done!
 
-        print(f'scores : {scores}')
-        print(f'failure_points : {failure_points}')
         failure_points_copy = copy.deepcopy(failure_points)
-        maximum_substring_length = self.calculate_maximum_substring_length(failure_points_copy)
+        max_substr_len = self.get_max_substr_len(failure_points_copy)
 
         if get_score_mode == "1": # with calculating winning points
             if len(failure_points) == 0:
                 scores += 5  # if there is no failure points then chromosome is a winner
+
         # we score by summing max substring + scores!
-        return maximum_substring_length + scores, failure_points
+        return max_substr_len + scores, failure_points
